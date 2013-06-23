@@ -93,13 +93,13 @@ def extract(options, args):
     </navPoint>
 '''
         toc_fp = open(toc_fn, 'a')
-        toc_fp.write('<!-- generated toc entries, remove after review\n')
+        toc_fp.write('<!--\n')
 
         order = 0
         for _ in scan_files:
             order += 1
             item = toc_item_tpl.format(order=order, id='{0}-{1}'.format(base_uuid, order),
-                label='', contentsrc=_)
+                label=' <em class="italic">()</em>', contentsrc=_)
             toc_fp.write(item)
         toc_fp.write('-->\n')
         toc_fp.close()
