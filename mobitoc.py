@@ -12,7 +12,11 @@ from sys import exit
 from optparse import OptionParser
 from pprint import pprint as pp
 
-parser = OptionParser()
+description = '''Available commands are: extract, makebook
+'''
+usage = 'Usage:\n    %prog <command> [options] [FILE]'
+
+parser = OptionParser(usage=usage, description=description)
 parser.add_option('', '--remove-dir', dest='remove_dir',
     help="Remove target directory if it's already exists", default=False, action='store_true')
 
