@@ -97,22 +97,25 @@ def extract(options, args):
     </navPoint>
 '''
         toc_fp = open(toc_fn, 'a')
-        toc_fp.write('<!--\n')
+        toc_fp.write('<!--\n $TITLE ($AUTHOR)')
 
         order = 0
         for _ in scan_files:
             order += 1
             item = toc_item_tpl.format(order=order, id='{0}-{1}'.format(base_uuid, order),
-                label=' <em class="italic">()</em>', contentsrc=_)
+                label=' ()', contentsrc=_)
             toc_fp.write(item)
         toc_fp.write('-->\n')
         toc_fp.close()
             
 
 def makebook(options, args):
-    # check that we are in epub source dir and compress all it's content to single file `../book.epub`
+    # check that we are in epub source dir and compress all it's content to single file `../$FOLDER_NAME.epub`
     cwd = os.path.abspath(os.getcwd())
-    output_fn = os.path.abspath( os.path.join(cwd, '..', 'book.epub') )
+    dirname  = os.path.basename(cwd)
+    output_fn = os.path.abspath( os.path.join(cwd, '..', dirname+'.epub') )
+    if os.path.exists(output_fn):
+        os.unlink(output_fn)
     z = zipfile.ZipFile(output_fn, 'w', zipfile.ZIP_DEFLATED)
 
     for dirpath, dirnames, filenames in os.walk('.'):
