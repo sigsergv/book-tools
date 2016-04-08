@@ -97,13 +97,26 @@ def extract(options, args):
     </navPoint>
 '''
         toc_fp = open(toc_fn, 'a')
+        hre = re.compile('<h2[^>]+>')
+
+        toc_fp.write('<!--\n')
+        for sfn in scan_files:
+            with open(os.path.join(target_dir, sfn)) as fp:
+                start = fp.read(1000)
+                hpos = start.find('<h2 ')
+                fragment = start[hpos:hpos+300]
+                fragment = hre.sub('', fragment)
+                toc_fp.write(sfn + '\n' + fragment + '\n')
+
+        toc_fp.write('-->\n')
+
         toc_fp.write('<!--\n $TITLE ($AUTHOR)')
 
         order = 0
-        for _ in scan_files:
+        for sfn in scan_files:
             order += 1
             item = toc_item_tpl.format(order=order, id='{0}-{1}'.format(base_uuid, order),
-                label=' ()', contentsrc=_)
+                label=' ()', contentsrc=sfn)
             toc_fp.write(item)
         toc_fp.write('-->\n')
         toc_fp.close()
