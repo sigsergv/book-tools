@@ -56,6 +56,7 @@ def extract(options, args):
         exit(1)
 
     # create directory to extract data
+    basename_filedir = fn
     target_dir = os.path.join(directory, fn)
 
     if os.path.exists(target_dir):
@@ -98,17 +99,26 @@ def extract(options, args):
 '''
         toc_fp = open(toc_fn, 'a')
         hre = re.compile('<h2[^>]+>')
+        sre = re.compile('<h2[^>]+?>(.+?)</h2>(?:<[^>]+?>)+ *([^<]+)<')
 
-        toc_fp.write('<!--\n')
+        #toc_fp.write('<!--\n')
+        titles = {}
         for sfn in scan_files:
             with open(os.path.join(target_dir, sfn)) as fp:
                 start = fp.read(1000)
-                hpos = start.find('<h2 ')
-                fragment = start[hpos:hpos+300]
-                fragment = hre.sub('', fragment)
-                toc_fp.write(sfn + '\n' + fragment + '\n')
+                #hpos = start.find('<h2 ')
+                #fragment = start[hpos:hpos+300]
+                #fragment = hre.sub('', fragment)
+                mo = sre.search(start)
+                if mo is None:
+                    print('FAILED TO DETECT SECTION TITLE for {0}'.format(sfn))
+                    titles[sfn] = 'FAILED TO DETECT'
+                    continue
+                else:
+                    titles[sfn] = '{0} ({1})'.format(mo.group(1), mo.group(2))
+                #toc_fp.write(sfn + '\n' + mo.group(1) + ' : ' + mo.group(2) + '\n')
 
-        toc_fp.write('-->\n')
+        #toc_fp.write('-->\n')
 
         toc_fp.write('<!--\n $TITLE ($AUTHOR)')
 
@@ -116,10 +126,22 @@ def extract(options, args):
         for sfn in scan_files:
             order += 1
             item = toc_item_tpl.format(order=order, id='{0}-{1}'.format(base_uuid, order),
-                label=' ()', contentsrc=sfn)
+                label=titles[sfn], contentsrc=sfn)
             toc_fp.write(item)
         toc_fp.write('-->\n')
         toc_fp.close()
+
+    # also update content.opf
+    fn = os.path.join(target_dir, 'content.opf')
+    if not os.path.exists(fn):
+        print(">> No TOC file, skipping content.opf update")
+    else:
+        fp = open(fn, 'r')
+        data = fp.read()
+        fp.close()
+        data = re.sub('<dc:title>(.+)</dc:title>', '<dc:title>'+ basename_filedir +'</dc:title>', data)
+        fp = open(fn, 'w')
+        fp.write(data)
             
 
 def makebook(options, args):
